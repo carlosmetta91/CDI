@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Recorrido 360 - Complejo Deportivo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+      body { margin: 0; }
+      #menu {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="menu">
+      <label for="espacio">Elige el espacio:</label>
+      <select id="espacio">
+        <option value="cancha">Cancha</option>
+        <option value="gimnasio">Gimnasio</option>
+        <option value="alberca">Alberca</option>
+      </select>
+    </div>
+
+    <a-scene>
+      <a-assets>
+        <video id="canchaVideo" src="videos/cancha360.mp4" autoplay loop crossorigin="anonymous"></video>
+        <video id="gimnasioVideo" src="videos/gimnasio360.mp4" autoplay loop crossorigin="anonymous"></video>
+        <video id="albercaVideo" src="videos/alberca360.mp4" autoplay loop crossorigin="anonymous"></video>
+        <audio id="sound360" src="videos/audio360.mp3" preload="auto"></audio>
+      </a-assets>
+
+      <a-videosphere id="videosphere" src="#canchaVideo"></a-videosphere>
+      <a-entity sound="src: #sound360; autoplay: true; loop: true; positional: true" position="0 2 -3"></a-entity>
+      <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <script>
+      const espacioSelect = document.getElementById('espacio');
+      const videosphere = document.getElementById('videosphere');
+
+      espacioSelect.addEventListener('change', (e) => {
+        const selected = e.target.value;
+        const videoId = `${selected}Video`;
+        videosphere.setAttribute('src', `#${videoId}`);
+
+        // Reiniciar video al cambiar
+        const vids = document.querySelectorAll('video');
+        vids.forEach(v => v.pause());
+        const currentVideo = document.getElementById(videoId);
+        currentVideo.currentTime = 0;
+        currentVideo.play();
+      });
+    </script>
+  </body>
+</html>
