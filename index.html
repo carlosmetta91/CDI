@@ -17,47 +17,92 @@
         border-radius: 5px;
         z-index: 2;
       }
+          #audioButton {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ffffffcc;
+        color: #111;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        cursor: pointer;
+        z-index: 3;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      }
     </style>
   </head>
   <body>
-    <div id="menu">
-      <label for="espacio">Elige el espacio:</label>
-      <select id="espacio">
-        <option value="cancha">Cancha</option>
-        <option value="gimnasio">Gimnasio</option>
-        <option value="alberca">Alberca</option>
+    <div id=\"menu\">
+      <label for=\"espacio\">Elige el espacio:</label>
+      <select id=\"espacio\">
+        <option value=\"cancha\">Cancha</option>
+        <option value=\"gimnasio\">Gimnasio</option>
+        <option value=\"alberca\">Alberca</option>
       </select>
     </div>
+    <button id=\"audioButton\">Activar sonido</button>
 
     <a-scene>
       <a-assets>
-        <video id="canchaVideo" src="videos/cancha360.mp4" autoplay loop crossorigin="anonymous"></video>
-        <video id="gimnasioVideo" src="videos/gimnasio360.mp4" autoplay loop crossorigin="anonymous"></video>
-        <video id="albercaVideo" src="videos/alberca360.mp4" autoplay loop crossorigin="anonymous"></video>
-        <audio id="sound360" src="videos/audio360.wav" preload="auto"></audio>
+        <!-- Videos 360 -->
+        <video id=\"canchaVideo\" src=\"videos/cancha360.mp4\" autoplay loop crossorigin=\"anonymous\"></video>
+        <video id=\"gimnasioVideo\" src=\"videos/gimnasio360.mp4\" autoplay loop crossorigin=\"anonymous\"></video>
+        <video id=\"albercaVideo\" src=\"videos/alberca360.mp4\" autoplay loop crossorigin=\"anonymous\"></video>
+        <!-- Audio: usa WAV o MP3. Cambia el src si usas .mp3 -->
+        <audio id=\"sound360\" src=\"videos/audio360.wav\" preload=\"auto\"></audio>
       </a-assets>
 
-      <a-videosphere id="videosphere" src="#canchaVideo"></a-videosphere>
-      <a-entity sound="src: #sound360; autoplay: true; loop: true; positional: true" position="0 2 -3"></a-entity>
+      <a-videosphere id=\"videosphere\" src=\"#canchaVideo\"></a-videosphere>
+      <a-entity id=\"soundEntity\" sound=\"src: #sound360; autoplay: false; loop: true; positional: true; rolloffFactor: 1; refDistance: 2\" position=\"0 2 -3\"></a-entity>
       <a-entity camera look-controls position="0 1.6 0"></a-entity>
     </a-scene>
 
     <script>
       const espacioSelect = document.getElementById('espacio');
       const videosphere = document.getElementById('videosphere');
+      const audioButton = document.getElementById('audioButton');
+      const soundEntity = document.getElementById('soundEntity');
+      const audioEl = document.querySelector('#sound360');
 
+      // Cambio de video
       espacioSelect.addEventListener('change', (e) => {
         const selected = e.target.value;
         const videoId = `${selected}Video`;
         videosphere.setAttribute('src', `#${videoId}`);
-
-        // Reiniciar video al cambiar
         const vids = document.querySelectorAll('video');
         vids.forEach(v => v.pause());
         const currentVideo = document.getElementById(videoId);
         currentVideo.currentTime = 0;
         currentVideo.play();
       });
+
+      // Políticas de autoplay: requiere gesto de usuario
+      async function enableAudio() {
+        try {
+          const scene = AFRAME.scenes && AFRAME.scenes[0];
+          const ctx = scene && scene.audioListener && scene.audioListener.context;
+          if (ctx && ctx.state === 'suspended') {
+            await ctx.resume();
+          }
+          // Reproducir componente de sonido después del gesto
+          if (soundEntity && soundEntity.components && soundEntity.components.sound) {
+            soundEntity.components.sound.stopSound();
+            soundEntity.components.sound.playSound();
+          }
+          // Intento adicional para iOS
+          if (audioEl && audioEl.play) {
+            audioEl.play().catch(()=>{});
+          }
+          audioButton.textContent = 'Sonido activo';
+          audioButton.disabled = true;
+          audioButton.style.opacity = 0.7;
+        } catch (e) {
+          console.warn('No se pudo activar el audio:', e);
+        }
+      }
+
+      audioButton.addEventListener('click', enableAudio);
     </script>
   </body>
 </html>
